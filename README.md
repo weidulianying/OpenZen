@@ -18,14 +18,14 @@
 [原始Jar](./mapping/zen-orignial.jar)
 [Mapping](./mapping/zen.mapping)
 
+需要说明的是，部分喜欢裸舞的忠实Zen用户认为本源码逆向自比较旧的Zen版本。可能是因为这部分用户的脑容量只允许自己导入其他配置，因此不认识Zen的老旧UI。因此必须要说明，此源码使用的原始Jar截止至2026年5月21日是最新的。
+
 ## 细节
 经过Opus 4.7长达18秒的分析，Opus认为所有的类由惨遭魔改的Zelix KlassMaster混淆。除了Zelix的Invoke Dynamic和String Encryption外，还有部分未参与任何计算的Interger \ Long变量花指令代码和仅在部分方法中出现的Flow混淆。
 
 其中大部分类都可以经过小修小补的现有Zelix反混淆器完成，关键部分的`cinit`被Native保护，导致在Java层中没有对应的Master Key可以对Invoke Dynamic和String反混淆。但可能由于精神马来西亚人的脑袋在马来西亚骑摩托被其他车创飞导致脑溢血，即使你没有通过客户端认证也可以完整加载Native并对Class进行注册。因此我们完整的还原了所有类的Invoke Dynamic和String混淆。
 
-其他的混淆经过Opus长达30秒的分析，顺利写出了反混淆器。
-
-但被Rename后的代码几乎不可读，因此我用Opus 4.7制作了[Enigma MCP](https://github.com/Margele/Enigma-MCP)，接入Sonnet 4.6对其参照部分客户端进行了反混淆。
+其他的混淆经过Opus长达30秒的分析，顺利写出了反混淆器。 但被Rename后的代码几乎不可读，因此我用Opus 4.7制作了[Enigma MCP](https://github.com/Margele/Enigma-MCP)，接入Sonnet 4.6对其参照部分客户端进行了反混淆。
 
 再使用Opus 4.7对本项目经过长达6小时的修复和少量的人工修复，便得到了这份源码。
 
@@ -37,6 +37,11 @@
 经过分析，当你登录Zen后就会自动触发屏幕截图。同时已有用户反馈，当你狗叫Zen开发者后，其开发者将会把你的电脑屏幕截图发送至QQ群内，所以请你不要狗叫Zen开发者。
 
 [详细分析](./mapping/BACKDOOR.md)
+
+## 抄袭
+此项目大部分功能模块几乎全部抄袭自Naven客户端，具体详见以下分析。
+
+[详细分析](./paste/README.md)
 
 ## 状态与注意事项
 - 这是**尽力而为的反混淆结果**，部分符号是根据上下文重建的，可能与原作者的命名意图不一致。

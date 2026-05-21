@@ -64,7 +64,7 @@ public class KillAura extends Module {
     public final BooleanSetting targetEsp;
     public final BooleanSetting noUseItem;
     public final BooleanSetting aboveTarget;
-    public final NumberSetting aimRange;
+    public final NumberSetting attackRange;
     public final NumberSetting aps;
     public final NumberSetting switchAttackTimes;
     public final NumberSetting switchSize;
@@ -98,7 +98,7 @@ public class KillAura extends Module {
         this.targetEsp = new BooleanSetting("Target ESP", false);
         this.noUseItem = new BooleanSetting("No Use Item", false);
         this.aboveTarget = new BooleanSetting("Above Target", false);
-        this.aimRange = new NumberSetting("Aim Range", 5.0, 1.0, 6.0, 0.1);
+        this.attackRange = new NumberSetting("Attack Range", 5.0, 1.0, 6.0, 0.1);
         this.aps = new NumberSetting("APS", 10.0, 1.0, 20.0, 1.0);
         this.switchAttackTimes = new NumberSetting("Switch Attack Times", 10.0, 1.0, 20.0, 1.0);
         this.switchSize = new NumberSetting("Switch Size", 1.0, 1.0, 5.0, 1.0,
@@ -362,7 +362,7 @@ public class KillAura extends Module {
             return false;
         }
         Vec3 vec3 = RotationUtil.closestPoint(mc.player.getEyePosition(), entity.getBoundingBox());
-        if (vec3.distanceTo(mc.player.getEyePosition()) > this.aimRange.getValue().floatValue()) {
+        if (vec3.distanceTo(mc.player.getEyePosition()) > this.attackRange.getValue().floatValue()) {
             return false;
         }
         return RotationUtil.isEntityInFov(entity, this.fov.getValue().floatValue() / 2.0f);

@@ -16,11 +16,11 @@ public class ChatScreenPatch {
     public static void onRender(ChatScreen screen, GuiGraphics graphics, int mouseX, int mouseY, float partialTick, CallbackInfo callbackInfo) {
         try {
             for (HudElement element : ZenClient.getInstance().getHudManager().getHudElements().stream().filter(Module::isEnabled).toList()) {
-                if (!element.isEnabled()) continue;
+                if (!element.isDragging()) continue;
                 element.mouseDragged(mouseX, mouseY);
                 boolean leftDown = GLFW.glfwGetMouseButton(ClientBase.mc.getWindow().getWindow(), 0) == 1;
                 if (!leftDown) {
-                    element.setEnabled(false);
+                    element.setDragging(false);
                 }
             }
         } catch (Exception exception) {

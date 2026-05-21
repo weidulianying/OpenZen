@@ -2,7 +2,6 @@ package shit.zen.hud;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.Generated;
 import shit.zen.event.impl.GlRenderEvent;
 import shit.zen.event.impl.Render2DEvent;
 import shit.zen.modules.Category;
@@ -15,15 +14,16 @@ extends Module {
     protected float x;
     @Getter @Setter
     protected float y;
-    protected float hudWidth;
-    protected float hudHeight;
-    @Getter
+    @Getter @Setter
+    protected float width;
+    @Getter @Setter
+    protected float height;
+    @Getter @Setter
     private boolean dragging = false;
     @Getter @Setter
     private float dragOffsetX;
     @Getter @Setter
     private float dragOffsetY;
-    protected boolean visible;
 
     public HudElement(String string) {
         super(string, Category.RENDER);
@@ -51,47 +51,10 @@ extends Module {
     }
 
     public boolean isHovered(int mouseX, int mouseY) {
-        return RenderUtil.isHovered(this.x, this.y, this.hudWidth, this.hudHeight, mouseX, mouseY);
+        return RenderUtil.isHovered(this.x, this.y, this.width, this.height, mouseX, mouseY);
     }
 
     public void stopDragging() {
         this.dragging = false;
-    }
-
-    @Generated
-    public float getWidth() {
-        return this.hudWidth;
-    }
-
-    @Generated
-    public float getHeight() {
-        return this.hudHeight;
-    }
-
-    @Override
-    @Generated
-    public boolean isEnabled() {
-        return this.visible;
-    }
-
-    @Generated
-    public void setWidth(float width) {
-        this.hudWidth = width;
-    }
-
-    @Generated
-    public void setHeight(float height) {
-        this.hudHeight = height;
-    }
-
-    @Generated
-    protected void setDragging(boolean dragging) {
-        this.dragging = dragging;
-    }
-
-    @Override
-    @Generated
-    public void setEnabled(boolean enabled) {
-        this.visible = enabled;
     }
 }

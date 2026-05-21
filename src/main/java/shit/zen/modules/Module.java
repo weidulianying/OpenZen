@@ -69,6 +69,7 @@ extends ClientBase {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+
         if (enabled) {
             ZenClient.getInstance().getEventBus().register(this);
             this.onEnable();
@@ -93,4 +94,4 @@ extends ClientBase {
         return this.keyCode;
     }
 
-    }
+}

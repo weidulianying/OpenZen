@@ -472,13 +472,25 @@ public final class PatchTransformer {
         String targetOwner = split[0];
         String targetMethod = Bootstrap.remapMethod(split[0], split[1], targetDesc);
 
-        // Match what shit.zen.asm.PatchApplier did: accept either owner or name match,
-        // so targets pointing at the declaring class (e.g. Entity/getYRot) still hit
-        // bytecode that encodes the receiver as a subclass (LivingEntity/getYRot).
+        // Prefer a strict owner+name+desc match. Falling back to the historical
+        // (owner || name) matcher means a wrap aimed at Mth.lerp(FFF)F also gets
+        // its slice index counted against every Mth.rotLerp(FFF)F call site,
+        // which silently shifts indices once an earlier wrap deletes its own
+        // site instruction. Strict matching keeps each wrap's slice index
+        // independent. The legacy loose matcher is still used as a fallback so
+        // patches that target an inherited method on a subclass receiver
+        // (Entity#getYRot resolved at LivingEntity#getYRot) keep working.
         List<AbstractInsnNode> sites = collectInjectionPoints(method.instructions, wrap.slice(),
                 insn -> insn instanceof MethodInsnNode m
-                        && (m.owner.equals(targetOwner) || m.name.equals(targetMethod))
+                        && m.owner.equals(targetOwner)
+                        && m.name.equals(targetMethod)
                         && m.desc.equals(targetDesc));
+        if (sites.isEmpty()) {
+            sites = collectInjectionPoints(method.instructions, wrap.slice(),
+                    insn -> insn instanceof MethodInsnNode m
+                            && (m.owner.equals(targetOwner) || m.name.equals(targetMethod))
+                            && m.desc.equals(targetDesc));
+        }
         if (sites.isEmpty()) {
             LOGGER.warn("@WrapInvoke {}#{}{} found no call site of {}#{}{} — patch handler will not run.",
                     handler.getDeclaringClass().getName(), handler.getName(), Type.getMethodDescriptor(handler),

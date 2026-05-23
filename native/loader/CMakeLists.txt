@@ -1,3 +1,10 @@
+# Qt-side toggles: AUTOMOC for our Q_OBJECT classes, AUTORCC for any .qrc.
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+find_package(Qt6 6.4 COMPONENTS Widgets REQUIRED)
+
 # Stage the freshly-built OpenZen.dll into the loader's binary dir so rc.exe
 # can pick it up as an RCDATA resource (embedded in the .exe).
 set(EMBED_DIR "${CMAKE_CURRENT_BINARY_DIR}/embedded_dll")
@@ -10,14 +17,15 @@ add_custom_command(
 )
 add_custom_target(stage_dll_for_loader DEPENDS "${EMBED_DIR}/OpenZen.dll")
 
-add_executable(OpenZenLoader WIN32
+qt_add_executable(OpenZenLoader WIN32
     src/main.cpp
+    src/MainWindow.cpp
+    src/MainWindow.h
     src/process_list.cpp
     src/injector.cpp
     src/manual_map.cpp
     src/embedded_dll.cpp
     src/window_title.cpp
-    src/ui.cpp
     res/loader.rc
 )
 
@@ -35,7 +43,7 @@ set_source_files_properties(res/loader.rc PROPERTIES
 )
 
 target_link_libraries(OpenZenLoader PRIVATE
-    comctl32
+    Qt6::Widgets
     psapi
     shlwapi
     user32
@@ -46,12 +54,9 @@ set_target_properties(OpenZenLoader PROPERTIES
 )
 
 if(MSVC)
-    # requireAdministrator: ensures the loader can OpenProcess /
-    # VirtualAllocEx / CreateRemoteThread against javaw.exe even when the
-    # Minecraft launcher (HMCL, MultiMC) was itself started elevated, and
-    # avoids the silent injection failure that happens on locked-down user
-    # accounts. The user will see one UAC consent prompt when launching
-    # OpenZenLoader.exe.
+    # requireAdministrator: lets the loader OpenProcess / VirtualAllocEx /
+    # CreateRemoteThread against javaw.exe even when the launcher was
+    # itself started elevated. UAC consent prompts once on launch.
     set_target_properties(OpenZenLoader PROPERTIES
         LINK_FLAGS "/SUBSYSTEM:WINDOWS /MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\""
     )

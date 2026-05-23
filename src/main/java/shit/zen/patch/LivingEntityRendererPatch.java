@@ -47,9 +47,12 @@ public class LivingEntityRendererPatch {
         ZenClient.getInstance().getEventBus().call(post);
     }
 
-    // PatchApplier's wrap matcher is (owner ∥ name) && desc, so the filter accepts every
-    // Mth.*(FFF)F call. There are four in render — see onRenderPitchLerp below for the full
-    // map. We want the 2nd, the head yaw rotLerp.
+    // PatchTransformer.wrapInvoke now tries strict owner+name+desc matching first,
+    // so this slice index is independent of the other Mth.* wraps in this patch.
+    // LivingEntityRenderer.render holds 3 Mth.rotLerp(FFF)F calls in order:
+    //   1: body yaw    (Mth.rotLerp(g, yBodyRotO, yBodyRot))
+    //   2: head yaw    (Mth.rotLerp(g, yHeadRotO, yHeadRot))      <- we want this
+    //   3: head yaw recalc in the conditional branch
     @WrapInvoke(
             method = "render",
             desc = "(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
@@ -71,12 +74,16 @@ public class LivingEntityRendererPatch {
         return Mth.rotLerp(delta, event.getLastYaw(), event.getYaw());
     }
 
+    // Only one Mth.lerp(FFF)F call site in LivingEntityRenderer.render (pitch
+    // lerp: Mth.lerp(g, xRotO, getXRot())). The strict matcher in
+    // PatchTransformer.wrapInvoke filters out the three Mth.rotLerp calls, so
+    // slice (1,1) is the right pick.
     @WrapInvoke(
             method = "render",
             desc = "(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
             target = "net/minecraft/util/Mth/lerp",
             targetDesc = "(FFF)F",
-            slice = @Slice(startIndex = 4, endIndex = 4)
+            slice = @Slice(startIndex = 1, endIndex = 1)
     )
     public static float onRenderPitchLerp(
             LivingEntityRenderer<?, ?> renderer, LivingEntity entity, float entityYaw, float partialTick,

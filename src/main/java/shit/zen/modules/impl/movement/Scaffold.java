@@ -60,7 +60,7 @@ public class Scaffold extends Module {
 
     public final ModeSetting mode = new ModeSetting("Mode", "Normal", "Telly Bridge", "Old Telly", "Keep Y").withDefault("Normal");
     public final BooleanSetting eagle = new BooleanSetting("Eagle", true, () -> this.mode.is("Normal"));
-    public final BooleanSetting advancedBlockSearch = new BooleanSetting("Sneak", true);
+    public final BooleanSetting sneak = new BooleanSetting("Sneak", true);
     public final BooleanSetting snap = new BooleanSetting("Snap", true, () -> this.mode.is("Normal"));
     public final BooleanSetting renderItemSpoof = new BooleanSetting("Render Item Spoof", true);
     public final NumberSetting rotationTick = new NumberSetting("Rotation Tick", 3, 1, 6, 1);
@@ -261,7 +261,7 @@ public class Scaffold extends Module {
                 this.rots.setYaw(RotationUtil.moveTowards((float) this.getBlockDistance(), this.rots.getYaw(), this.correctRotation.getYaw()));
             }
             this.rots.setPitch(this.correctRotation.getPitch());
-            if (this.advancedBlockSearch.getValue()) {
+            if (this.sneak.getValue()) {
                 this.eagleTimer++;
                 if (this.eagleTimer == 18) {
                     if (mc.player.isSprinting()) {

@@ -311,6 +311,39 @@ def cmakeMissingMessage =
         '  - Visual Studio 2022 with "C++ CMake tools for Windows" workload\n' +
         'After installing, re-run ./gradlew dll'
 
+ext.findVcpkg = {
+    def envRoot = System.getenv('VCPKG_ROOT')
+    def candidates = []
+    if (envRoot) candidates << envRoot
+    candidates += ['C:/vcpkg', 'D:/vcpkg', "${System.getProperty('user.home')}/vcpkg"]
+    // Also accept versioned install dirs like C:/vcpkg-2026.03.18.
+    ['C:/', 'D:/'].each { drive ->
+        def root = file(drive)
+        if (root.isDirectory()) {
+            root.listFiles().each { f ->
+                if (f.isDirectory() && f.name ==~ /^vcpkg(-.*)?$/) {
+                    candidates << f.absolutePath.replace('\\', '/')
+                }
+            }
+        }
+    }
+    for (root in candidates) {
+        if (root && file("$root/scripts/buildsystems/vcpkg.cmake").exists()) {
+            return root
+        }
+    }
+    return null
+}
+
+def vcpkgMissingMessage =
+        'vcpkg not found. The Qt-based loader needs vcpkg for static Qt6.\n' +
+        'One-time setup:\n' +
+        '  git clone https://github.com/microsoft/vcpkg.git C:/vcpkg\n' +
+        '  C:/vcpkg/bootstrap-vcpkg.bat\n' +
+        'Optionally set VCPKG_ROOT, or put it at C:/vcpkg or D:/vcpkg.\n' +
+        'Then re-run ./gradlew dll - the first run will build static Qt\n' +
+        '(can take 30 min to 2 h); subsequent builds are fast.'
+
 tasks.register('stageNativeJar', Copy) {
     group = 'openzen'
     description = 'Stage the freshly built mod jar at native/zen.jar so the DLL ' +
@@ -330,8 +363,14 @@ tasks.register('configureNative', Exec) {
     doFirst {
         def cmake = findCmake()
         if (!cmake) throw new GradleException(cmakeMissingMessage)
-        logger.lifecycle("Using CMake: ${cmake}")
-        commandLine cmake, '-S', '.', '-B', 'build', '-A', 'x64'
+        def vcpkg = findVcpkg()
+        if (!vcpkg) throw new GradleException(vcpkgMissingMessage)
+        logger.lifecycle("Using CMake : ${cmake}")
+        logger.lifecycle("Using vcpkg : ${vcpkg}")
+        commandLine cmake, '-S', '.', '-B', 'build', '-A', 'x64',
+                "-DCMAKE_TOOLCHAIN_FILE=${vcpkg}/scripts/buildsystems/vcpkg.cmake",
+                '-DVCPKG_TARGET_TRIPLET=x64-windows-static',
+                '-DVCPKG_HOST_TRIPLET=x64-windows-static'
     }
 }
 

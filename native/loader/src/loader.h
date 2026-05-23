@@ -37,6 +37,4 @@ bool get_embedded_dll(const void*& out_data, size_t& out_size);
 // Returns empty strings if none found.
 WindowInfo window_info_for(DWORD pid);
 
-int run_ui(HINSTANCE hInstance);
-
 } // namespace loader

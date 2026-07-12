@@ -1,0 +1,72 @@
+# .github/workflows/build.yml
+name: Build OpenZenLoader
+
+# 定义何时触发构建
+on:
+  # 1. 允许你从 GitHub 网页手动触发
+  workflow_dispatch:
+  # 2. 当你向 main 分支推送代码时自动触发
+  push:
+    branches: [ main ]
+  # 3. 当有 Pull Request 指向 main 分支时触发
+  pull_request:
+    branches: [ main ]
+
+# 定义构建任务 (Job)
+jobs:
+  build:
+    # 在最新的 Windows 运行器上执行[reference:4]
+    runs-on: windows-latest
+
+    # 任务执行的步骤
+    steps:
+      # 1. 拉取你的仓库代码[reference:5]
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 设置 Java 环境 (Gradle 需要)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. 设置 MSVC 编译环境 (C++ 编译需要)[reference:6]
+      - name: Setup MSVC
+        uses: microsoft/setup-msbuild@v2
+
+      # 4. 安装 vcpkg (依赖管理工具)
+      - name: Install vcpkg
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git
+          .\vcpkg\bootstrap-vcpkg.bat
+        shell: cmd
+
+      # 5. 缓存 vcpkg 的包，加速后续构建
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: vcpkg\packages
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      # 6. 执行 Gradle 构建，生成 EXE[reference:8]
+      #    此步骤会自动调用 vcpkg 编译 Qt6 等依赖
+      - name: Build with Gradle
+        run: .\gradlew.bat dll
+        shell: cmd
+
+      # 7. (可选) 如果安装了 UPX，可以在这里压缩 EXE
+      # - name: Compress with UPX
+      #   run: .\gradlew.bat upxCompress
+      #   shell: cmd
+
+      # 8. 上传构建产物 (EXE 文件)[reference:9]
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # 产物的名称
+          name: OpenZenLoader
+          # 要上传的文件或文件夹路径
+          path: build/dist/
